@@ -2,7 +2,7 @@ import pandas as pd
 import requests
 import re
 
-# NORMALIZATION
+
 def norm(s):
     s = str(s).upper().strip()
     s = re.sub(r'[^A-Z0-9 ]', '', s)
@@ -13,14 +13,13 @@ def norm(s):
 
 def data_validation_agent(row):
     npi = str(row.get("npi", "")).strip()
-    address = str(row.get("provider_address", "")).strip()
 
     return {
-        "npi_format_valid": len(npi) == 10 and npi.isdigit(),
-        "address_present": len(address) > 5
+        "npi_format_valid": len(npi) == 10 and npi.isdigit()
     }
 
 # AGENT 2 — NPI VALIDATION
+
 def npi_validation_agent(npi):
     if len(npi) != 10 or not npi.isdigit():
         return None, "INVALID_FORMAT"
@@ -62,40 +61,30 @@ def data_source_enrichment_agent(api_data):
     }
 
 # AGENT 4 — DIRECTORY MANAGEMENT
+
 def directory_management_agent(row, enriched):
     csv_name = norm(f"{row.get('provider_first_name','')} {row.get('provider_last_name','')}")
     npi_name = norm(enriched.get("full_name", ""))
 
-    csv_addr = norm(row.get("provider_address", ""))
-    npi_addr = norm(enriched.get("address", ""))
-
     return {
-        "name_match": csv_name == npi_name,
-        "address_match": csv_addr == npi_addr
+        "name_match": csv_name == npi_name
     }
 
-# AGENT 5 — QUALITY ASSURANCE (SCORING)
+# AGENT 5 — QUALITY ASSURANCE
+
 def quality_assurance_agent(validation, npi_valid, matches):
     score = 0.0
 
     if validation["npi_format_valid"]:
-        score += 0.1
-    if validation["address_present"]:
-        score += 0.1
+        score += 0.2
 
     if npi_valid:
-        score += 0.3
+        score += 0.4
 
-    # Critical logic
     if matches["name_match"]:
-        score += 0.3
+        score += 0.4
     else:
-        score -= 0.2
-
-    if matches["address_match"]:
-        score += 0.2
-    else:
-        score -= 0.2
+        score -= 0.3
 
     score = max(0, min(score, 1))
     return round(score, 2)
@@ -109,23 +98,17 @@ def master_orchestrator_agent(input_data):
     for _, row in df.iterrows():
         row = row.to_dict()
 
-        # Agent 1
         validation = data_validation_agent(row)
 
-        # Agent 2
         api_data, npi_status = npi_validation_agent(row.get("npi", ""))
         npi_valid = api_data is not None
 
-        # Agent 3
         enriched = data_source_enrichment_agent(api_data)
 
-        # Agent 4
         matches = directory_management_agent(row, enriched)
 
-        # Agent 5
         score = quality_assurance_agent(validation, npi_valid, matches)
 
-        # Final decision (inside orchestrator)
         if score >= 0.8:
             status = "AUTO_ACCEPT"
         elif score >= 0.5:
@@ -138,11 +121,11 @@ def master_orchestrator_agent(input_data):
             "status": status,
             "npi_status": npi_status,
             "name_match": matches["name_match"],
-            "address_match": matches["address_match"],
             "details": enriched
         })
 
     return results
+
 
 def run_pipeline(input_data):
     return master_orchestrator_agent(input_data)

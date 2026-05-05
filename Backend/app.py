@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-from Pipeline.agent import run_pipeline
+from pipeline.agent import run_pipeline
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -13,16 +13,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/")
-def home():
-    return {"message": "API is running"}
-
-
 class ProviderInput(BaseModel):
     npi: str
     provider_first_name: str
     provider_last_name: str
-    provider_address: str
 
 
 @app.post("/predict")

@@ -53,7 +53,6 @@ function Validation({ goHome }) {
     npi: "",
     provider_first_name: "",
     provider_last_name: "",
-    provider_address: "",
   });
 
   const [result, setResult] = useState(null);
