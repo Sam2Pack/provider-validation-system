@@ -108,7 +108,6 @@ setLoading(false);
         <input style={styles.input} name="npi" placeholder="NPI" onChange={handleChange} />
         <input style={styles.input} name="provider_first_name" placeholder="First Name" onChange={handleChange} />
         <input style={styles.input} name="provider_last_name" placeholder="Last Name" onChange={handleChange} />
-        <input style={styles.input} name="provider_address" placeholder="Address" onChange={handleChange} />
 
         <button style={styles.button} onClick={handleSubmit}>
           Check Confidence
