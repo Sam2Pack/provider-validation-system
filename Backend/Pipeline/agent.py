@@ -1,8 +1,12 @@
 import pandas as pd
 import requests
+import re
 
 def norm(s):
-    return " ".join(str(s).upper().split())
+    s = str(s).upper().strip()
+    s = re.sub(r'[^A-Z0-9 ]', '', s)   # remove punctuation
+    s = re.sub(r'\s+', ' ', s)         # normalize spaces
+    return s
 
 def data_validation_agent(row):
     npi = str(row.get("npi", "")).strip()
@@ -47,7 +51,7 @@ def npi_validation_agent(row):
         addresses = rec.get("addresses", [])
         taxonomies = rec.get("taxonomies", [])
 
-        # Extract data
+        # Extract NPI data
         npi_first = basic.get("first_name", "")
         npi_last = basic.get("last_name", "")
         full_name = f"{npi_first} {npi_last}".strip()
@@ -55,9 +59,8 @@ def npi_validation_agent(row):
         address = addresses[0].get("address_1", "") if addresses else ""
         taxonomy = taxonomies[0].get("desc", "") if taxonomies else ""
 
-        # Matching
-        csv_first = str(row.get("provider_first_name", "")).strip()
-        csv_last = str(row.get("provider_last_name", "")).strip()
+        csv_first = row.get("provider_first_name", "")
+        csv_last = row.get("provider_last_name", "")
 
         csv_full = norm(f"{csv_first} {csv_last}")
         npi_full = norm(full_name)
@@ -104,12 +107,21 @@ def quality_assurance_agent(v1, v2):
         score += 0.1
     if v1.get("address_present"):
         score += 0.1
+
     if v2.get("npi_valid"):
-        score += 0.4
+        score += 0.3
+
     if v2.get("name_match"):
         score += 0.3
+    else:
+        score -= 0.2
+
     if v2.get("address_match"):
-        score += 0.1
+        score += 0.2
+    else:
+        score -= 0.2
+
+    score = max(0, min(score, 1))
 
     if score >= 0.8:
         status = "AUTO_ACCEPT"
@@ -118,7 +130,10 @@ def quality_assurance_agent(v1, v2):
     else:
         status = "REJECT"
 
-    return {"confidence": round(score, 2), "status": status}
+    return {
+        "confidence": round(score, 2),
+        "status": status
+    }
 
 def run_pipeline(input_data):
     df = pd.DataFrame(input_data).fillna("")
@@ -135,6 +150,8 @@ def run_pipeline(input_data):
             "confidence": v3["confidence"],
             "status": v3["status"],
             "npi_status": v2["npi_status"],
+            "name_match": v2["name_match"],
+            "address_match": v2["address_match"],
             "details": v2["npi_data"]
         })
 
