@@ -14,7 +14,6 @@ function App() {
   );
 }
 
-/* ================= HOME PAGE ================= */
 
 function Home({ goToApp }) {
   return (
@@ -26,7 +25,7 @@ function Home({ goToApp }) {
         </p>
 
         <button style={styles.ctaButton} onClick={goToApp}>
-          🚀 Start Validation
+          Start Validation
         </button>
       </div>
 
@@ -49,8 +48,6 @@ function Feature({ title, desc }) {
   );
 }
 
-/* ================= VALIDATION PAGE ================= */
-
 function Validation({ goHome }) {
   const [form, setForm] = useState({
     npi: "",
@@ -71,7 +68,7 @@ function Validation({ goHome }) {
     setResult(null);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/predict", {
+      const res = await fetch("https://provider-validation-system.onrender.com", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +151,7 @@ function Validation({ goHome }) {
 
           {result.details.full_name === "Not Found" && (
             <p style={{ color: "red" }}>
-              ⚠ No record found in NPI database
+              No record found in NPI database
             </p>
           )}
         </div>
@@ -162,8 +159,6 @@ function Validation({ goHome }) {
     </div>
   );
 }
-
-/* ================= STYLES ================= */
 
 const styles = {
   app: {

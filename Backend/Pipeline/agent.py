@@ -4,10 +4,6 @@ import requests
 def norm(s):
     return " ".join(str(s).upper().split())
 
-
-# ===============================
-# AGENT 1 — VALIDATION
-# ===============================
 def data_validation_agent(row):
     npi = str(row.get("npi", "")).strip()
     addr = str(row.get("provider_address", "")).strip()
@@ -17,10 +13,6 @@ def data_validation_agent(row):
         "address_present": len(addr) > 5,
     }
 
-
-# ===============================
-# EMPTY RESPONSE
-# ===============================
 def _empty_response(status):
     return {
         "npi_valid": False,
@@ -35,10 +27,6 @@ def _empty_response(status):
         }
     }
 
-
-# ===============================
-# AGENT 2 — NPI VALIDATION
-# ===============================
 def npi_validation_agent(row):
     npi = str(row.get("npi", "")).strip()
 
@@ -109,10 +97,6 @@ def npi_validation_agent(row):
     except:
         return _empty_response("API_ERROR")
 
-
-# ===============================
-# SCORING (ORIGINAL)
-# ===============================
 def quality_assurance_agent(v1, v2):
     score = 0.0
 
@@ -136,10 +120,6 @@ def quality_assurance_agent(v1, v2):
 
     return {"confidence": round(score, 2), "status": status}
 
-
-# ===============================
-# MAIN PIPELINE
-# ===============================
 def run_pipeline(input_data):
     df = pd.DataFrame(input_data).fillna("")
     results = []
