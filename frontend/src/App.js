@@ -68,21 +68,27 @@ function Validation({ goHome }) {
     setResult(null);
 
     try {
-      const res = await fetch("https://provider-validation-system.onrender.com", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+  const res = await fetch("https://provider-validation-system.onrender.com/predict", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(form),
+  });
 
-      const data = await res.json();
-      setResult(data);
-    } catch {
-      alert("Server error. Try again.");
-    }
+  if (!res.ok) {
+    throw new Error("API error");
+  }
 
-    setLoading(false);
+  const data = await res.json();
+  setResult(data);
+
+} catch (err) {
+  console.error(err);
+  alert("Server error. Try again.");
+}
+
+setLoading(false);
   };
 
   const getColor = (c) => {
@@ -144,12 +150,12 @@ function Validation({ goHome }) {
           <hr />
 
           <h3>Doctor Details</h3>
-          <p><b>Name:</b> {result.details.full_name}</p>
+          <p><b>Name:</b> {result?.details?.full_name}</p>
           <p><b>Address:</b> {result.details.address}</p>
           <p><b>Specialization:</b> {result.details.taxonomy}</p>
           <p><b>Registered On:</b> {result.details.enumeration_date}</p>
 
-          {result.details.full_name === "Not Found" && (
+          {result?.details?.full_name === "Not Found" && (
             <p style={{ color: "red" }}>
               No record found in NPI database
             </p>
